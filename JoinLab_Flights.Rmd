@@ -115,11 +115,24 @@ delay_by_dest %>%
 What is the average departure delay for each airline? To answer this with something more than just the FAA code of the airline name, you need to create a dataframe of the average departure delay for each *airline*, then use `left_join()` to join on the "airlines" dataframe
 
 ```{r}
+
+glimpse(airlines)
+
+my_flights %>% 
+  group_by(carrier) %>% 
+  summarise(avg_dep_delay = mean(dep_delay)) %>% 
+  left_join(airlines, join_by(carrier)) %>% 
+  select(name, avg_dep_delay) %>% 
+  arrange(-avg_dep_delay)
+
 #Which airline had the smallest average departure delay? 
 
-
-
-
+my_flights %>% 
+  group_by(carrier) %>% 
+  summarise(avg_dep_delay = mean(dep_delay)) %>% 
+  left_join(airlines, join_by(carrier)) %>% 
+  select(name, avg_dep_delay) %>% 
+  arrange(avg_dep_delay)
 
 
 ```
@@ -128,7 +141,11 @@ Add origin and destination airport names (two joins to the same table) Question:
 
 ```{r}
 
-
+left_join(my_flights, airports, join_by(dest == faa)) %>% 
+  left_join(airports, join_by(origin == faa))  %>%  ## if you look at this result, you can see `name.x` and `name.y`
+  group_by(name.x, name.y) %>% 
+  summarise(avg_arr_delay = mean(arr_delay)) %>% 
+  slice_max(avg_arr_delay)
 
 ```
 
@@ -170,4 +187,8 @@ What does anti_join(flights, airports, by = c("dest" = "faa")) tell you? What do
 
 ```{r}
 
+anti_join(flights, airports, by = c("dest" = "faa")) %>% 
+  select(dest) %>% distinct()
+
+anti_join(airports, flights, by = c("faa" = "dest")) 
 ```
